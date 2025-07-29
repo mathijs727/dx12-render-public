@@ -1,0 +1,23 @@
+{
+  "name": "ltc",
+  "version-date": "2021-06-18",
+  "description": "Fitting of Linearly Transformed Cosines for real-time area light sources.",
+  "homepage": "https://github.com/mathijs727/ltc_code",
+  "dependencies": [
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    },
+    "cimg",
+    "glm",
+    "fmt",
+    {
+      "name": "tbb",
+      "default-features": false
+    }
+  ]
+}

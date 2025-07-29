@@ -1,0 +1,34 @@
+#output "cpp" "namespace"
+
+BindPoint BindPoint1{};
+
+ShaderInputLayout RayTraceLocalLayout<Local> {
+    BindPoint1 bindPoint1 {
+        .shaderStages = [compute]
+    };
+
+    RootConstant rootConstant1 {
+        .shaderStages = [compute],
+        .num32BitValues = 3
+    };
+
+    RootCBV rootConstantView1 {
+        .shaderStages = [compute]
+    };
+};
+
+struct RTScreenCamera {
+    float3 origin;
+    float3 forward;
+    float3 screenU;
+    float3 screenV;
+};
+
+// Compute based (inline) ray tracing to demonstrate the framework.
+ShaderInputGroup RayTraceDebug<BindTo=BindPoint1>
+{
+    RWTexture2D<float4> output[2];
+    //RaytracingAccelerationStructure accelerationStructure;
+    uint2 numThreads;
+    //RTScreenCamera camera;
+};

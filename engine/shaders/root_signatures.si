@@ -1,0 +1,100 @@
+BindPoint Material {};
+
+// Global root signature for the ray tracing pipeline.
+BindPoint RayTraceMain {};
+ShaderInputLayout RayTraceGlobalLayout {
+    RayTraceMain main {
+        .shaderStages = [raytracing]
+    };
+
+    StaticSampler environmentMapSampler {
+        .Filter = "D3D12_FILTER_MIN_MAG_MIP_LINEAR",
+        .AddressU = "D3D12_TEXTURE_ADDRESS_MODE_WRAP",
+        .AddressV = "D3D12_TEXTURE_ADDRESS_MODE_WRAP"
+    };
+};
+// Local root signature for the ray tracing pipeline.
+BindPoint RayTraceMesh {};
+ShaderInputLayout RayTraceLocalLayout<Local> {
+    Material material {
+        .shaderStages = [raytracing]
+    };
+    RayTraceMesh mesh {
+        .shaderStages = [raytracing]
+    };
+
+    StaticSampler materialSampler {
+        .Filter = "D3D12_FILTER_MIN_MAG_MIP_LINEAR",
+        .AddressU = "D3D12_TEXTURE_ADDRESS_MODE_WRAP",
+        .AddressV = "D3D12_TEXTURE_ADDRESS_MODE_WRAP"
+    };
+};
+
+// Root signature for the compute pipeline.
+BindPoint ComputeMain {};
+ShaderInputLayout ComputeLayout
+{
+    ComputeMain main {
+        .shaderStages = [compute]
+    };
+    //Material material {
+    //    .shaderStages = [compute]
+    //};
+
+    StaticSampler ltcLutSampler {
+        .Filter = "D3D12_FILTER_MIN_MAG_MIP_LINEAR",
+        .AddressU = "D3D12_TEXTURE_ADDRESS_MODE_BORDER",
+        .AddressV = "D3D12_TEXTURE_ADDRESS_MODE_BORDER"
+    };
+};
+
+// Root signature for the rasterization pipeline.
+BindPoint RenderPass {};
+BindPoint MeshInstance {};
+ShaderInputLayout DefaultLayout
+{
+    RootConstant drawID {
+        .shaderStages = [fragment],
+        .num32BitValues = 1
+    };
+    RootCBV visualDebugCBV {
+        .shaderStages = [vertex,fragment]
+    };
+
+    Material material {
+        .shaderStages = [vertex,fragment]
+    };
+    MeshInstance instance {
+        .shaderStages = [vertex,fragment]
+    };
+    RenderPass pass {
+        .shaderStages = [vertex,fragment]
+    };
+
+    StaticSampler ltcLutSampler {
+        .Filter = "D3D12_FILTER_MIN_MAG_MIP_LINEAR",
+        .AddressU = "D3D12_TEXTURE_ADDRESS_MODE_BORDER",
+        .AddressV = "D3D12_TEXTURE_ADDRESS_MODE_BORDER"
+    };
+    StaticSampler materialSampler {
+        .Filter = "D3D12_FILTER_MIN_MAG_MIP_LINEAR",
+        .AddressU = "D3D12_TEXTURE_ADDRESS_MODE_WRAP",
+        .AddressV = "D3D12_TEXTURE_ADDRESS_MODE_WRAP",
+        .MipLODBias = "-1.0f"
+    };
+    StaticSampler taaSampler {
+        .Filter = "D3D12_FILTER_MIN_MAG_MIP_LINEAR",
+        .AddressU = "D3D12_TEXTURE_ADDRESS_MODE_CLAMP ",
+        .AddressV = "D3D12_TEXTURE_ADDRESS_MODE_CLAMP "
+    };
+    StaticSampler taaNNSampler {
+        .Filter = "D3D12_FILTER_MIN_MAG_MIP_POINT",
+        .AddressU = "D3D12_TEXTURE_ADDRESS_MODE_CLAMP ",
+        .AddressV = "D3D12_TEXTURE_ADDRESS_MODE_CLAMP "
+    };
+    StaticSampler shadowMapSampler {
+        .Filter = "D3D12_FILTER_MIN_MAG_MIP_POINT",
+        .AddressU = "D3D12_TEXTURE_ADDRESS_MODE_BORDER",
+        .AddressV = "D3D12_TEXTURE_ADDRESS_MODE_BORDER"
+    };
+};

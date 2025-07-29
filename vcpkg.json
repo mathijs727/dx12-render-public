@@ -1,0 +1,41 @@
+{
+  "name": "dx12-render",
+  "version": "0.0.1",
+  "dependencies": [
+    "catch2",
+    "cli11",
+    "cppitertools",
+    "d3d12-memory-allocator",
+    "directx-headers",
+    "directxmesh",
+    {
+      "name": "directxtex",
+      "features": [
+        "openexr"
+      ]
+    },
+    "d3dx12",
+    "eabase",
+    "eastl",
+    "ktx",
+    "fmt",
+    "foonathan-lexy",
+    "glm",
+    {
+      "name": "imgui",
+      "features": [
+        "docking-experimental",
+        "dx12-binding",
+        "win32-binding"
+      ]
+    },
+    "magic-enum",
+    "mio",
+    "nativefiledialog-extended",
+    "nlohmann-json",
+    {
+      "name": "spdlog",
+      "default-features": false
+    }
+  ]
+}

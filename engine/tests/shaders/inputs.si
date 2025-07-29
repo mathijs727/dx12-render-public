@@ -1,0 +1,26 @@
+#output "../src/Render/ShaderInputs/" "TestShaderInputs"
+#include "../../shaders/inputs.si"
+
+// Root signature for the compute pipeline.
+BindPoint TestComputeMain {};
+ShaderInputLayout TestComputeLayout
+{
+    TestComputeMain main {
+        .shaderStages = [compute]
+    };
+};
+
+ShaderInputGroup TestPrintf<BindTo=TestComputeMain> {
+    PrintSink printSink;
+    RWStructuredBuffer<uint> out;
+};
+
+// Test random number generator in compute shader.
+ShaderInputGroup TestRandomUint<BindTo=TestComputeMain> {
+    uint64_t seed;
+    RWStructuredBuffer<uint> out;
+};
+ShaderInputGroup TestRandomFloat<BindTo=TestComputeMain> {
+    uint64_t seed;
+    RWStructuredBuffer<float> out;
+};

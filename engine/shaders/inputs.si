@@ -1,0 +1,272 @@
+#output "../../engine/include/Engine/Render/ShaderInputs" "ShaderInputs"
+#include "root_signatures.si"
+#include "lights.si"
+#include "utils.si"
+
+#constant MESHLET_MAX_PRIMITIVES 93
+#constant MESHLET_MAX_VERTICES 64
+
+// Bind index & vertex buffers so we can compute texture coordinates from triangle idx + UV.
+struct Vertex {
+    float3 pos;
+    float3 normal;
+    float2 texCoord;
+};
+
+// Description of a PBR material
+struct PBRMaterial {
+    float3 baseColor;
+    uint32_t baseColorTextureIdx;
+    float metallic;
+    float alpha;
+};
+ShaderInputGroup SinglePBRMaterial<BindTo=Material> {
+    PBRMaterial material;
+    Texture2D<float4> baseColorTexture;
+};
+
+// Bindless scene.
+struct Meshlet {
+    uint32_t vertices[MESHLET_MAX_VERTICES]; // Indices into the vertex array.
+    uint32_t numVertices;
+    uint32_t numPrimitives;
+    uint32_t subMeshIdx;
+    uint32_t primitives[MESHLET_MAX_PRIMITIVES]; // Indices into uint32_t vertices[64].
+};
+struct BindlessSubMesh {
+    uint32_t indexStart;
+    uint32_t numIndices;
+    uint32_t baseVertex;
+    uint32_t numVertices;
+
+    uint32_t meshletStart;
+    uint32_t numMeshlets;
+
+    PBRMaterial material;
+};
+struct BindlessMesh {
+    uint32_t subMeshStart;
+    uint32_t numSubMeshes;
+    uint32_t numMeshlets;
+};
+struct BindlessMeshInstance {
+    float4x4 modelMatrix;
+    float3x3 normalMatrix;
+    uint32_t meshIdx;
+};
+ShaderInputGroup BindlessScene<BindTo=RenderPass> {
+    // One buffer per mesh
+    StructuredBuffer<uint32_t> indexBuffers[];
+    StructuredBuffer<Meshlet> meshlets[];
+    StructuredBuffer<Vertex> vertexBuffers[];
+
+    StructuredBuffer<BindlessSubMesh> subMeshes;
+    StructuredBuffer<BindlessMesh> meshes;
+    StructuredBuffer<BindlessMeshInstance> meshInstances;
+
+    // Material textures.
+    Texture2D<float4> baseColorTextures[];
+};
+
+// Visual Debugging
+Group VisualDebug
+{
+    RWByteAddressBuffer commandBuffer;
+    RWByteAddressBuffer constantsBuffer;
+    uint64_t constantsBufferAddress;
+    uint32_t paused;
+};
+ShaderInputGroup VisualDebugCamera<BindTo=RenderPass>
+{
+    float3 cameraPosition;
+    float4x4 viewProjectionMatrix;
+};
+
+Group PrintSink {
+    RWByteAddressBuffer printBuffer;
+    uint32_t bufferSize;
+    uint32_t paused;
+};
+
+
+// Ray tracing camera.
+struct RTScreenCamera {
+    float3 origin;
+    float3 forward;
+    float3 screenU;
+    float3 screenV;
+};
+
+// Compute pass that copies from one texture to another texture.
+ShaderInputGroup Copy<BindTo=ComputeMain> {
+    Texture2D<float4> inTexture;
+    RWTexture2D<float4> outTexture;
+};
+
+// Compute based (inline) ray tracing to demonstrate the framework.
+ShaderInputGroup RayTraceDebug<BindTo=ComputeMain>
+{
+    RWTexture2D<float4> output;
+    RaytracingAccelerationStructure accelerationStructure;
+    uint2 numThreads;
+    RTScreenCamera camera;
+};
+
+// Debug compute shader that draws random noise.
+ShaderInputGroup RasterDebug<BindTo=RenderPass> {
+    int2 debugPixel;
+    VisualDebug visualDebug;
+};
+// Debug compute shader that draws random noise.
+ShaderInputGroup RandomDebug<BindTo=ComputeMain> {
+    uint64_t seed;
+    uint2 textureResolution;
+    RWTexture2D<float4> outTexture;
+};
+
+// Shared per-instance transformation matrices.
+ShaderInputGroup StaticMeshVertex<BindTo=MeshInstance> {
+    float4x4 modelMatrix;
+    float3x3 modelNormalMatrix;
+    float4x4 modelViewMatrix;
+    float4x4 modelViewProjectionMatrix;
+};
+ShaderInputGroup StaticMeshTAAVertex<BindTo=MeshInstance> {
+    float4x4 modelMatrix;
+    float3x3 modelNormalMatrix;
+    float4x4 modelViewMatrix;
+    float4x4 modelViewProjectionMatrix;
+
+    float4x4 jitteredModelViewProjectionMatrix;
+    float4x4 lastFrameModelViewProjectionMatrix;
+};
+
+// Forward rendering.
+ShaderInputGroup Forward<BindTo=RenderPass> {
+    float3 cameraPosition;
+    DirectionalLight sun;
+};
+ShaderInputGroup ForwardShadowRT<BindTo=RenderPass> {
+    RaytracingAccelerationStructure accelerationStructure;
+    float3 cameraPosition;
+    float exposure;
+    DirectionalLight sun;
+
+    uint64_t randomSeed;
+    uint2 viewportSize;
+};
+
+// Deferred rendering.
+ShaderInputGroup DeferredShading<BindTo=RenderPass> {
+    Texture2D<float4> position_metallic;
+    Texture2D<float4> normal_alpha;
+    Texture2D<float4> baseColor;
+    Texture2D<float> sunVisibility;
+
+    float3 cameraPosition;
+    DirectionalLight sun;
+};
+ShaderInputGroup SunVisibilityRT<BindTo=ComputeMain> {
+    RWTexture2D<float> output;
+    Texture2D<float4> position_metallic;
+    DirectionalLight sun;
+    RaytracingAccelerationStructure accelerationStructure;
+
+    uint2 numThreads;
+    uint64_t randomSeed;
+};
+ShaderInputGroup VisiblityRender<BindTo=RenderPass> {
+    PrintSink printSink;
+};
+ShaderInputGroup VisiblityToGBuffer<BindTo=MeshInstance> {
+    PrintSink printSink;
+    Texture2D<uint2> visibilityBuffer;
+    RTScreenCamera camera;
+    float2 invResolution;
+    float3 pixelToRayDirectionWorldSpace[2];
+    int outputType; // 0 = MIP0, 1 = textured with Ray Differentials (DF), 2 = DF themselves.
+    bool rayDifferentialsChristoph;
+};
+
+// Mesh shading pipeline to demonstrate the framework.
+ShaderInputGroup MeshShading<BindTo=MeshInstance> {
+    StructuredBuffer<Meshlet> meshlets;
+    StructuredBuffer<Vertex> vertices;
+    uint32_t meshletStart;
+
+    float4x4 modelMatrix;
+    float3x3 modelNormalMatrix;
+    float4x4 modelViewMatrix;
+    float4x4 modelViewProjectionMatrix;
+};
+// Bind to MeshInstance because BindlessScene already binds to the Renderpass bindpoint.
+// Should consider making a separate ShaderInputGroup (RootSignature) for bindless rendering.
+ShaderInputGroup MeshShadingBindless<BindTo=MeshInstance> {
+    float4x4 viewProjectionMatrix;
+};
+
+// Ray tracing pipeline to demonstrate the framework.
+ShaderInputGroup RTMesh<BindTo=RayTraceMesh> {
+    StructuredBuffer<uint32_t> indices;
+    StructuredBuffer<Vertex> vertices;
+};
+ShaderInputGroup RayTracePipelineDebug<BindTo=RayTraceMain>
+{
+    RWTexture2D<float4> output;
+    RaytracingAccelerationStructure accelerationStructure;
+    uint2 numThreads;
+    RTScreenCamera camera;
+};
+// Ray tracing pipeline to demonstrate the framework.
+ShaderInputGroup PathTracing<BindTo=RayTraceMain>
+{
+    uint2 debugPixel;
+    VisualDebug visualDebug;
+
+    RaytracingAccelerationStructure accelerationStructure;
+    uint2 numThreads;
+    uint64_t randomSeed;
+    RTScreenCamera camera;
+    RWTexture2D<float4> output;
+    bool overwriteOutput;
+
+    float environmentMapStrength;
+    Texture2D<float4> environmentMap;
+    DirectionalLight sun;
+};
+
+// Per instance Model-View-Projection matrix used to render depth-only views.
+ShaderInputGroup DepthOnlyVertex<BindTo=MeshInstance> {
+    float4x4 mvpMatrix;
+};
+
+// Full-screen pass that converts "real-world" colors to tone-mapped and gamma corrected sRGB colors.
+ShaderInputGroup ColorCorrection<BindTo=RenderPass>
+{
+    Texture2D<float4> linearFrameBuffer;
+    float invSampleCount;
+    int  toneMappingFunction; // 0 = 0ff, 1 = uncharted, 2 = ACES
+    bool enableWhitePoint;
+    bool enableGammaCorrection;
+};
+// Compute pass that decodes Nvidia Real-Time Denoisers "diff_radiance_hitdist" buffer.
+ShaderInputGroup NvidiaDenoiseDecode<BindTo=ComputeMain>
+{
+    Texture2D<float4> inTexture;
+    RWTexture2D<float4> outTexture;
+};
+// Full-screen pass that combined the current frame & TAA history.
+ShaderInputGroup TAAResolve<BindTo=RenderPass>
+{
+    Texture2D<float4> frameBuffer;
+    Texture2D<float> depth;
+    Texture2D<float2> velocity;
+    Texture2D<float4> history;
+    Texture2D<float> historyDepth;
+
+    float2 resolution;
+    float alpha;
+
+    float4x4 inverseViewProjectionMatrix;
+    float4x4 lastFrameInverseViewProjectionMatrix;
+};

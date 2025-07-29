@@ -1,0 +1,5 @@
+add_subdirectory("Engine/Core")
+add_subdirectory("Engine/Memory")
+add_subdirectory("Engine/Render")
+add_subdirectory("Engine/RenderAPI")
+add_subdirectory("Engine/Util")

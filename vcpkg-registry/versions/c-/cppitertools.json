@@ -1,0 +1,14 @@
+{
+  "versions": [
+    {
+      "version-string": "2.0-no-boost",
+      "path": "$/ports/cppitertools/2.0-no-boost",
+      "port-version": 0
+    },
+    {
+      "version-string": "2.1-no-boost",
+      "path": "$/ports/cppitertools/2.1-no-boost",
+      "port-version": 3
+    }
+  ]
+}

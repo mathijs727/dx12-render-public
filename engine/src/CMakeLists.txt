@@ -1,0 +1,5 @@
+add_subdirectory("Core")
+add_subdirectory("Memory")
+add_subdirectory("Render")
+add_subdirectory("RenderAPI")
+add_subdirectory("Util")

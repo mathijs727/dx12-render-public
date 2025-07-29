@@ -1,0 +1,17 @@
+// Rasterization pass that copies from one texture to another texture.
+ShaderInputGroup CopyRaster<BindTo=RenderPass> {
+    Texture2D<float4> inTexture;
+};
+ShaderInputGroup CopyChannelRaster<BindTo=RenderPass> {
+    Texture2D<float4> inTexture;
+    uint32_t r;
+    uint32_t g;
+    uint32_t b;
+    float offset;
+    float scaling;
+};
+// Rasterization pass that fills a texture with the given value.
+ShaderInputGroup ClearTexture<BindTo=RenderPass>
+{
+    float4 clearColor;
+};

@@ -1,0 +1,17 @@
+{
+  "default-registry": {
+    "kind": "builtin",
+    "baseline": "8f63c9ed5897d7367a92a442a79f91721e0fd38f"
+  },
+  "registries": [
+    {
+      "kind": "filesystem",
+      "baseline": "default",
+      "path": "vcpkg-registry",
+      "packages": [
+        "cppitertools",
+        "ltc"
+      ]
+    }
+  ]
+}

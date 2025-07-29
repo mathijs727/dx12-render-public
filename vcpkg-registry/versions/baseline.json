@@ -1,0 +1,12 @@
+{
+  "default": {
+    "cppitertools": {
+      "baseline": "2.1-no-boost",
+      "port-version": 3
+    },
+    "ltc": {
+      "baseline": "2021-06-18",
+      "port-version": 0
+    }
+  }
+}

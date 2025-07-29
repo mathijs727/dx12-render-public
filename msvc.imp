@@ -1,0 +1,11 @@
+[
+  { "include": [ "<xstring>", "private", "<string>", "public" ] },
+  { "include": [ "<xmemory>", "private", "<memory>", "public" ] },
+  { "include": [ "<xutility>", "private", "<utility>", "public" ] },
+  { "include": [ "<stdint.h>", "public", "<cstdint>", "public" ] },
+  { "include": [ "<stddef.h>", "public", "<cstddef>", "public" ] },
+  { "include": [ "<stdlib.h>", "public", "<cstdlib>", "public" ] },
+  { "include": [ "<assert.h>", "public", "<cassert>", "public" ] },
+  { "include": [ "<vcruntime_exception.h>", "private", "<exception>", "public" ] },
+  { "include": [ "<xpolymorphic_allocator.h>", "private", "<exception>", "public" ] }
+]
