@@ -64,7 +64,7 @@ The `--docking` flag enables docking support in [imgui](https://github.com/ocorn
 
 ## Screenshots
 ### Light path visualization
-Path tracing consists of constructing many different light "paths". As a debugging feature, we can draw the path at the current mouse cursor position. Visual debugging is impelmented entirely on the GPU using `ExecuteIndirect`.
+Path tracing consists of constructing many different light "paths". As a debugging feature, we can draw the path at the current mouse cursor position. Visual debugging is implemented entirely on the GPU using `ExecuteIndirect`.
 
 ![Screenshot2](images/light_path_visualization.png)
 
